@@ -17,17 +17,21 @@ set.seed(1)
 # Saving everything needed for all methods
 
 X <- matrix(NaN,nrow=n,ncol=2)
+Xprop <- matrix(NaN,nrow=n-1,ncol=2)
+accept <- R <- rep(NaN,n-1)
 X[1,] <- c(0.5,0.5)
 logpi_curr <- logpi(X[1,])
 for (j in 2:n){
-  prop <- mvrnorm(1,X[j-1,],Sigma)
-  logpi_prop <- logpi(prop)
-  MH_ratio <- exp(logpi_prop - logpi_curr)
-  if (runif(1)<MH_ratio){
-    X[j,] <- prop
+  Xprop[j-1,] <- mvrnorm(1,X[j-1,],Sigma)
+  logpi_prop <- logpi(Xprop[j-1,])
+  R[j-1] <- exp(logpi_prop-logpi_curr)
+  if (runif(1)<R[j-1]){
+    X[j,] <- Xprop[j-1,]
     logpi_curr <- logpi_prop
+    accept[j-1] <- 1
   } else{
     X[j,] <- X[j-1,]
+    accept[j-1] <- 0
   }
 }
 
