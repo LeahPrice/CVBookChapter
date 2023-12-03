@@ -20,9 +20,8 @@ hyper_par <- simulate_data(n = n, p = p, c = c, SNR = 3, scenario = 1)
 
 # Gold standard estimation
 gold_est <- 0.2664132  # from 5,000,000 iterations with 5000 burn-in
-burn_in <- 5000
-n <- 5000
-MCMC <- GS(p = p, hyper_par = hyper_par, T = n, burn_in = burn_in)
+n <- 10000
+MCMC <- GS(p = p, hyper_par = hyper_par, T = n)
 
 gamma_1 <- MCMC$gamma_1
 p_gamma_1 <- MCMC$p_gamma_1
@@ -44,8 +43,8 @@ coefs2 <- lm(f ~ CV2)$coef
 mean(f - CV2%*%coefs2[-1])
 
 ## Plot of the cumulative estimate
-est_CV2 <- est_CV1 <- rep(NaN, n + burn_in)
-for( i in 3:(n+burn_in)){
+est_CV2 <- est_CV1 <- rep(NaN, n)
+for( i in 3:n){
   coefs1 <- lm(f[1:i] ~ CV1[1:i])$coef
   est_CV1[i] = mean(f[1:i] - coefs1[-1]*CV1[1:i])
   coefs2 <- lm(f[1:i] ~ CV2[1:i,])$coef
@@ -53,14 +52,14 @@ for( i in 3:(n+burn_in)){
 }
 
 par(mfrow = c(1,2), mar=c(4,4,2,2))
-plot(cumsum(gamma_1)/c(1:(burn_in+n)),
+plot(cumsum(gamma_1)/c(1:n),
      ylim=c(0,0.5),type="l",xlab="Sampler iteration", ylab=expression(paste("E[", gamma[1],"]")))
 lines(est_CV1, col = 'red', lwd=1)
 lines(est_CV2, col = 'blue', lwd=2)
 abline(h = gold_est, lty=2, lwd=2, col = "magenta")
 legend("topright", legend = c("Monte Carlo", "CV1", "CV2", "Gold Standard"), col=c("black","red","blue","magenta"), lwd=2)
 
-plot(cumsum(gamma_1)/c(1:(burn_in+n)),
+plot(cumsum(gamma_1)/c(1:n),
      ylim=c(0.26,0.27),type="l",xlab="Sampler iteration", ylab=expression(paste("E[", gamma[1],"]")))
 lines(est_CV1, col = 'red', lwd=1)
 lines(est_CV2, col = 'blue', lwd=2)
@@ -71,8 +70,7 @@ par(mfrow = c(1,1), mar=c(4,5,4,4))
 # SIMULATION
 # Compare the performance relative to Rao-Blackwellisation
 
-n<-5000 #n.iterations
-burn_in<-5000
+n <- 10000 #n.iterations
 
 M=100
 MC_est <- rep(0, M)
@@ -81,7 +79,7 @@ CV2_est <- rep(0, M)
 RB_est <- rep(0, M)
 for( i in 1:M ){
   print(i)
-  MCMC<-GS(p=p,hyper_par=hyper_par,T=n,burn_in=burn_in)
+  MCMC<-GS(p=p,hyper_par=hyper_par,T=n)
   f <- MCMC$gamma_1
   MC_est[i] = mean(f)
 
@@ -96,7 +94,7 @@ for( i in 1:M ){
   RB_est[i] = mean(MCMC$p_gamma_1)
 }
 
-boxplot(list(MontCarlo=MC_est, RaoBlackWell=RB_est, CV1=CV1_est, CV2=CV2_est), ylab = expression(paste("E[", gamma[1],"]")))
+boxplot(list(MonteCarlo=MC_est, RaoBlackWell=RB_est, CV1=CV1_est, CV2=CV2_est), ylab = expression(paste("E[", gamma[1],"]")))
 abline(h=gold_est)
 
 
