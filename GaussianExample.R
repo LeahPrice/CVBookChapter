@@ -1,5 +1,5 @@
 library(MASS)
-library(batchmeans)
+library(batchmeans) # for MCMC standard error estimate 
 
 # Model specifications
 tau <- sqrt(10)
