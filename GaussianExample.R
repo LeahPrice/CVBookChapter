@@ -49,12 +49,20 @@ grads <- -X%*%SigmaInv
 coef <- lm(f ~ grads)$coef
 mean(f - grads%*%coef[-1])
 
-# Control variates with batch means
+# Control variates with batch means estimate of asymptotic variance
 coef <- optim(c(0,0),function(theta) bm(f-grads%*%theta)$se)$par
 mean(f - grads%*%coef)
 
 ##############################################################
 # Section 1.3.1
+
+# Control variates of the form g - Pg for random-scan Gibbs P
+CVs <- 0.5*cbind(X[,1] - rho*X[,2]/tau,X[,2] - rho*tau*X[,1])
+coef <- lm(f ~ CVs)$coef
+mean(f - CVs%*%coef[-1])
+
+##############################################################
+# Section 1.4.1
 
 # Control variates with second-order ZVCV
 CVs <- cbind(grads, 2+2*X*grads, X[,1]*grads[,2] + X[,2]*grads[,1])
@@ -62,7 +70,7 @@ coef <- lm(f ~ CVs)$coef
 mean(f - CVs%*%coef[-1])
 
 ##############################################################
-# Section 1.3.2
+# Section 1.4.2
 
 # Control functionals with a Gaussian kernel (package)
 library(ZVCV)
@@ -70,7 +78,6 @@ lambda <- medianTune(unique(X))
 CF(f,X,grads,steinOrder=1,kernel_function="gaussian",sigma=lambda)
 
 # Control functionals with a Gaussian kernel (from scratch)
-library(Matrix) # For nearPD
 
 # Removing duplicates
 dups <- which(duplicated(X))
@@ -110,7 +117,7 @@ t(rep(1,nu))%*%K0inv%*%fu/(t(rep(1,nu))%*%K0inv%*%rep(1,nu))
 
 
 ##############################################################
-# Section 1.3.3
+# Section 1.4.3
 
 # SECF with a Gaussian kernel and first order polynomial (package)
 SECF(f,X,grads,polyorder=1,steinOrder=1,kernel_function="gaussian",sigma=lambda)
@@ -119,13 +126,6 @@ SECF(f,X,grads,polyorder=1,steinOrder=1,kernel_function="gaussian",sigma=lambda)
 Phi <- cbind(1,gradsu)
 solve(t(Phi)%*%K0inv%*%Phi,t(Phi)%*%K0inv%*%fu)[1]
 
-##############################################################
-# Section 1.4.1
-
-# Control variates of the form g - Pg for random-scan Gibbs P
-CVs <- 0.5*cbind(X[,1] - rho*X[,2]/tau,X[,2] - rho*tau*X[,1])
-coef <- lm(f ~ CVs)$coef
-mean(f - CVs%*%coef[-1])
 
 ##############################################################
 # Section 1.5
